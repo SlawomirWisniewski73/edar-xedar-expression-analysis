@@ -55,6 +55,8 @@ ANOVA results and correlation coefficients
 ##Citation
 If you use these scripts, please cite:
 Wisniewski SA (2024) Differential Expression of Edar and Xedar During Mouse and Rat Tail Appendage Development
+Figshare repository DOI: 10.6084/m9.figshare.27927177
+
 
 ##Contact
 For questions or issues, please contact:
