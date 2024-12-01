@@ -1,0 +1,71 @@
+# Load required libraries
+library(stats)
+library(ggplot2)
+library(car)
+library(nlme)
+
+# Read data
+data <- read.csv("edar_xedar_expression.csv")
+
+# 1. Data Preparation and Quality Control ----
+# Calculate CV for actin
+cv_actin <- function(data) {
+  cv <- (sd(data$actin)/mean(data$actin)) * 100
+  return(cv)
+}
+
+# 2. Statistical Analysis ----
+# Shapiro-Wilk test for normality
+shapiro.test(data$edar)
+shapiro.test(data$xedar)
+
+# Two-way ANOVA for Edar
+edar_anova <- aov(edar ~ species * day, data = data)
+summary(edar_anova)
+
+# Two-way ANOVA for Xedar
+xedar_anova <- aov(xedar ~ species * day, data = data)
+summary(xedar_anova)
+
+# Tukey post-hoc tests
+TukeyHSD(edar_anova)
+TukeyHSD(xedar_anova)
+
+# 3. Correlation Analysis ----
+# Separate by species
+mouse_data <- subset(data, species == "mouse")
+rat_data <- subset(data, species == "rat")
+
+# Pearson correlation
+mouse_cor <- cor.test(mouse_data$edar, mouse_data$xedar, method = "pearson")
+rat_cor <- cor.test(rat_data$edar, rat_data$xedar, method = "pearson")
+
+# 4. Polynomial Regression ----
+# Edar models
+mouse_edar_model <- lm(edar ~ poly(day, 2), data = mouse_data)
+rat_edar_model <- lm(edar ~ poly(day, 2), data = rat_data)
+
+# Xedar models
+mouse_xedar_model <- lm(xedar ~ poly(day, 3), data = mouse_data)
+rat_xedar_model <- lm(xedar ~ poly(day, 2), data = rat_data)
+
+# Calculate R-squared values
+summary(mouse_edar_model)$r.squared
+summary(rat_edar_model)$r.squared
+summary(mouse_xedar_model)$r.squared
+summary(rat_xedar_model)$r.squared
+
+# 5. Visualization ----
+# Expression patterns plot
+ggplot(data, aes(x = day, y = value, color = species)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~gene, scales = "free_y") +
+  theme_minimal() +
+  labs(x = "Day", y = "Expression Level")
+
+# Save results
+save(edar_anova, xedar_anova, mouse_cor, rat_cor, 
+     mouse_edar_model, rat_edar_model, 
+     mouse_xedar_model, rat_xedar_model, 
+     file = "analysis_results.RData")
